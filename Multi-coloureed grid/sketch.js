@@ -12,6 +12,7 @@ function setup() {
   document.addEventListener("contextmenu", event => event.preventDefault());
   wsize = width / topsquare;//divide to get size of each square
   hsize = height / sidesquare;
+  grid();
 }
 function draw() {
 }
