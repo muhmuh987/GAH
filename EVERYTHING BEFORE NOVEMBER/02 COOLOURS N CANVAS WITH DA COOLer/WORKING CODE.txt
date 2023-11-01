@@ -1,0 +1,58 @@
+// Project Title
+// Your Name
+// Date
+//
+// Extra for Experts:
+// - describe what you did to take this project "above and beyond"
+let extracanvas;
+let d = 5;
+let s =1;
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  extracanvas = createGraphics(width, height);
+  extracanvas.clear();
+}
+function draw() {
+  extracanvas.textFont("georgia");
+  extracanvas.text("Elias Reynolds", 20, 30);
+  growingCircle();
+  image(extracanvas,0,0);
+  if (d > 30 || d === 0){
+    s = s*-1;
+  }
+}
+function keyPressed() {
+  if (key === "a") {
+    extracanvas.rect(mouseX, mouseY, 50, 25);
+  }
+  if (key === "s") {
+    extracanvas.ellipse(mouseX, mouseY, 30);
+  }
+  if (key === "d") {
+    extracanvas.square(mouseX, mouseY, 25);
+  }
+  if (key === "r") {
+    extracanvas.fill("red");
+  }
+  if (key === "g") {
+    extracanvas.fill("green");
+  }
+  if (key === "b") {
+    extracanvas.fill("blue");
+  }
+  if (key === " "){
+    extracanvas.background(255);
+    extracanvas.clear();
+  }
+}
+function growingCircle(){
+  fill('purple');
+  background(255);
+  circle(width-100,height-100, d);
+  if (s > 0){
+    d++;
+  }
+  else{
+    d= d-1;
+  }
+}
