@@ -1,0 +1,3 @@
+see here is some text
+sample strings to read and parse
+is this a haiku?

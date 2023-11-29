@@ -4,10 +4,16 @@
 //
 // Extra for Experts:
 // - describe what you did to take this project "above and beyond"
+//Required features
+//a functional game of chess that two people can play
+//must make legal moves and win with checkmate
+//Optional
 let squareSize = 60;
-let bB,bK,bN,bP,bQ,bR,wB,wK,wN,wP,wQ,wR;
-let boardData =[];
-function preload(){
+let bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR;
+let boardData = [];
+let row;
+let col;
+function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
   bN = loadImage("assets/black knight.png");
@@ -20,13 +26,13 @@ function preload(){
   wP = loadImage("assets/white pawn.png");
   wQ = loadImage("assets/white queen.png");
   wR = loadImage("assets/white rook.png");
-  boardData =[
+  boardData = [
     [bR,bN,bB,bQ,bK,bB,bN,bR],
     [bP,bP,bP,bP,bP,bP,bP,bP],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
     [wP,wP,wP,wP,wP,wP,wP,wP],
     [wR,wN,wB,wQ,wK,wB,wN,wR]
   ];
@@ -37,28 +43,31 @@ function setup() {
 }
 
 function draw() {
+  row = getCurrentY();
+  col = getCurrentX();
   chessBoard();
   renderPieces();
+  print(col,row);
 }
-function renderPieces(){
-  for(let row = 0; row < 8;row++){
-    for(let col = 0; col < 8;col++){
-      if(boardData[row][col]!==0){
-        image(boardData[row][col],col*60,row*60,60,60);
+function renderPieces() {
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      if (boardData[row][col] !== 0) {
+        image(boardData[row][col], col * 60, row * 60, 60, 60);
       }
     }
   }
 }
 function chessBoard() {
   let c = 'green';
-  for (let x = 0; x < squareSize*8; x += squareSize) {//size w
+  for (let x = 0; x < squareSize * 8; x += squareSize) {//size w
     if (c === 255) {
       c = 'green';
     }
     else {
       c = 255;
     }
-    for (let y = 0; y < squareSize*8; y += squareSize) {//size h
+    for (let y = 0; y < squareSize * 8; y += squareSize) {//size h
       fill(c);
       if (c === 255) {
         c = 'green';
@@ -69,4 +78,12 @@ function chessBoard() {
       rect(x, y, squareSize);
     }
   }
+}
+function getCurrentX(){ //determine current column mouse is in, and return
+  let constrainMouseX = constrain(mouseX, 0, width-1);
+  return floor(constrainMouseX/60);  
+}
+function getCurrentY(){ //determine current row mouse is in, and return
+  let constrainMouseY = constrain(mouseY, 0, height-1);
+  return floor(constrainMouseY/60);
 }
