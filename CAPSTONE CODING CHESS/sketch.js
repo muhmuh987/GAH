@@ -13,6 +13,9 @@ let bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR;
 let boardData = [];
 let row;
 let col;
+let turn = 1;
+let clickCount = 1;
+let selectedPiece;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -27,14 +30,14 @@ function preload() {
   wQ = loadImage("assets/white queen.png");
   wR = loadImage("assets/white rook.png");
   boardData = [
-    [bR,bN,bB,bQ,bK,bB,bN,bR],
-    [bP,bP,bP,bP,bP,bP,bP,bP],
+    [bR, bN, bB, bQ, bK, bB, bN, bR],
+    [bP, bP, bP, bP, bP, bP, bP, bP],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [wP,wP,wP,wP,wP,wP,wP,wP],
-    [wR,wN,wB,wQ,wK,wB,wN,wR]
+    [wP, wP, wP, wP, wP, wP, wP, wP],
+    [wR, wN, wB, wQ, wK, wB, wN, wR]
   ];
 }
 function setup() {
@@ -47,7 +50,6 @@ function draw() {
   col = getCurrentX();
   chessBoard();
   renderPieces();
-  print(col,row);
 }
 function renderPieces() {
   for (let row = 0; row < 8; row++) {
@@ -79,11 +81,39 @@ function chessBoard() {
     }
   }
 }
-function getCurrentX(){ //determine current column mouse is in, and return
-  let constrainMouseX = constrain(mouseX, 0, width-1);
-  return floor(constrainMouseX/60);  
+function getCurrentX() { //determine current column mouse is in, and return
+  let constrainMouseX = constrain(mouseX, 0, width - 1);
+  return floor(constrainMouseX / 60);
 }
-function getCurrentY(){ //determine current row mouse is in, and return
-  let constrainMouseY = constrain(mouseY, 0, height-1);
-  return floor(constrainMouseY/60);
+function getCurrentY() { //determine current row mouse is in, and return
+  let constrainMouseY = constrain(mouseY, 0, height - 1);
+  return floor(constrainMouseY / 60);
 }
+let selectedRow;
+let selectedCol;
+function mousePressed() {
+  if (clickCount === 1) {
+    if (boardData[row][col] !== 0) {
+      selectedRow = row;
+      selectedCol = col;
+      clickCount += 1;
+    }
+  }
+  else if (clickCount === 2) {
+    boardData[row][col] = boardData[selectedRow][selectedCol];
+    if (row !== selectedRow || col !== selectedCol) {//double click line
+      boardData[selectedRow][selectedCol] = 0;
+    }
+    clickCount = 1;
+  }
+}
+function rookMove(){
+  if(row === selectedRow||col === selectedCol){
+    return true;
+  }
+  else{
+    return false;
+  }
+
+}
+//https://prod.liveshare.vsengsaas.visualstudio.com/join?2172E89F808CEBB905C116A5AF76357F69C5
