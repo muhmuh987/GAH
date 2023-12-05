@@ -104,89 +104,187 @@ function mousePressed() {
       if (rules(boardData[selectedRow][selectedCol])) {
         boardData[row][col] = boardData[selectedRow][selectedCol];
         boardData[selectedRow][selectedCol] = 0;
+        boardFlip();
+        turn *= -1;
       }
     }
     clickCount = 1;
   }
 }
+function boardFlip() {
+  boardData.reverse();
+}
 function rules(piece) {
-  if (piece === wP) {
-    if (selectedCol === col) {
-      if (boardData[row][col] === 0) {
-        if (selectedRow === 6) {
-          if (selectedRow === row + 1 || selectedRow === row + 2) {
-            return true;
+  if (turn === 1) {
+    if (boardData[row][col] === 0 || boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
+      if (piece === wP) {
+        if (selectedCol === col) {
+          if (boardData[row][col] === 0) {
+            if (selectedRow === 6) {
+              if (selectedRow === row + 1 || selectedRow === row + 2) {
+                return true;
+              }
+            }
+            else if (row > 0) {
+              if (selectedRow === row + 1) {
+                return true;
+              }
+            }
           }
         }
-        else if (row > 0) {
-          if (selectedRow === row + 1) {
-            return true;
+        else if (col + 1 === selectedCol || col - 1 === selectedCol) {
+          if (row === selectedRow - 1) {
+            if (boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
+              return true;//placeholder
+            }
           }
         }
       }
-    }
-    else if (col + 1 === selectedCol || col - 1 === selectedCol) {
-      if (row === selectedRow - 1) {
-        if (boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
-          return true;//placeholder
+      else if (piece === wN) {
+        if (boardData[row][col] === 0 || boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
+          if (selectedCol === col - 1 || selectedCol === col + 1) {
+            if (selectedRow === row + 2 || selectedRow === row - 2) {
+              return true;
+            }
+          }
+          else if (selectedCol === col - 2 || selectedCol === col + 2) {
+            if (selectedRow === row + 1 || selectedRow === row - 1) {
+              return true;
+            }
+          }
+        }
+      }
+      else if (piece === wR) {
+        if (selectedCol === col) {
+          if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
+            return true;
+          }
+          if (row < selectedRow) {
+            for (let i = selectedRow - 1; boardData[i][col] === 0; i--) {
+              if (row > i - 2) {
+                return true;
+              }
+            }
+          }
+          else if (row > selectedRow) {
+            for (let i = selectedRow + 1; boardData[i][col] === 0; i++) {
+              if (row < i + 2) {
+                return true;
+              }
+            }
+          }
+        }
+        else if (selectedRow === row) {
+          if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
+            return true;
+          }
+          if (col < selectedCol) {
+            for (let i = selectedCol - 1; boardData[row][i] === 0; i--) {
+              if (col > i - 2) {
+                return true;
+              }
+            }
+          }
+          else if (col > selectedCol) {
+            for (let i = selectedCol + 1; boardData[row][i] === 0; i++) {
+              if (col < i + 2) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      else if(piece===wK){
+        if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedRow || col - 1 === selectedRow) {
+          return true;
         }
       }
     }
   }
-  else if (piece === bP) {
-    if (selectedCol === col) {
-      if (boardData[row][col] === 0) {
-        if (selectedRow === 1) {
-          if (selectedRow === row - 1 || selectedRow === row - 2) {
-            return true;
+  else if (turn === -1) {
+    if (boardData[row][col] === 0 || boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
+      if (piece === bP) {
+        if (selectedCol === col) {
+          if (boardData[row][col] === 0) {
+            if (selectedRow === 6) {
+              if (selectedRow === row + 1 || selectedRow === row + 2) {
+                return true;
+              }
+            }
+            else if (row < 7) {
+              if (selectedRow === row + 1) {
+                return true;
+              }
+            }
           }
         }
-        else if (row < 7) {
-          if (selectedRow === row - 1) {
-            return true;
+        else if (col + 1 === selectedCol || col - 1 === selectedCol) {
+          if (row === selectedRow - 1) {
+            if (boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
+              return true;//placeholder
+            }
           }
         }
       }
-    }
-    else if (col + 1 === selectedCol || col - 1 === selectedCol) {
-      if (row === selectedRow + 1) {
-        if (boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
-          return true;//placeholder
+      else if (piece === bN) {
+        if (boardData[row][col] === 0 || boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
+          if (selectedCol === col - 1 || selectedCol === col + 1) {
+            if (selectedRow === row + 2 || selectedRow === row - 2) {
+              return true;
+            }
+          }
+          else if (selectedCol === col - 2 || selectedCol === col + 2) {
+            if (selectedRow === row + 1 || selectedRow === row - 1) {
+              return true;
+            }
+          }
         }
       }
-    }
-  }
-  else if (piece === wN) {
-    if (boardData[row][col] === 0||boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
-      if (selectedCol === col - 1 || selectedCol === col + 1) {
-        if (selectedRow === row + 2 || selectedRow === row - 2) {
+      else if (piece === bR) {
+        if (selectedCol === col) {
+          if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
+            return true;
+          }
+          if (row < selectedRow) {
+            for (let i = selectedRow - 1; boardData[i][col] === 0; i--) {
+              if (row > i - 2) {
+                return true;
+              }
+            }
+          }
+          else if (row > selectedRow) {
+            for (let i = selectedRow + 1; boardData[i][col] === 0; i++) {
+              if (row < i + 2) {
+                return true;
+              }
+            }
+          }
+        }
+        else if (selectedRow === row) {
+          if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
+            return true;
+          }
+          if (col < selectedCol) {
+            for (let i = selectedCol - 1; boardData[row][i] === 0; i--) {
+              if (col > i - 2) {
+                return true;
+              }
+            }
+          }
+          else if (col > selectedCol) {
+            for (let i = selectedCol + 1; boardData[row][i] === 0; i++) {
+              if (col < i + 2) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      else if(piece===bK){
+        if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedRow || col - 1 === selectedRow) {
           return true;
         }
       }
-      else if (selectedCol === col - 2 || selectedCol === col + 2) {
-        if (selectedRow === row + 1 || selectedRow === row - 1) {
-          return true;
-        }
-      }
-    }
-  }
-  else if (piece === bN) {
-    if (boardData[row][col] === 0||boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
-      if (selectedCol === col - 1 || selectedCol === col + 1) {
-        if (selectedRow === row + 2 || selectedRow === row - 2) {
-          return true;
-        }
-      }
-      else if (selectedCol === col - 2 || selectedCol === col + 2) {
-        if (selectedRow === row + 1 || selectedRow === row - 1) {
-          return true;
-        }
-      }
-    }
-  }
-  else if(piece === wR){
-    if (selectedCol === col){
-      for(let i = selectedRow;boardData[i][col] === wP || boardData[i][col] === wR || boardData[i][col] === wN || boardData[i][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK)
     }
   }
   else {
