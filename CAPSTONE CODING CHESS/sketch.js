@@ -13,6 +13,8 @@ let clickCount = 1;
 let haswKMoved = false;
 let hasbKMoved = false;
 let selectedPiece;
+let passantCol = 69;
+let passantCount = 100;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -105,7 +107,7 @@ function selectionCircle() {
   circle(mouseX, mouseY, 10);
 }
 let selectedRow = 6;
-let selectedCol =0;
+let selectedCol = 0;
 function mousePressed() {
   if (clickCount === 1) {
     if (boardData[row][col] !== 0) {
@@ -116,11 +118,14 @@ function mousePressed() {
   }
   else if (clickCount === 2) {
     if (row !== selectedRow || col !== selectedCol) {//double click line
-      if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol)) {
-        boardData[row][col] = boardData[selectedRow][selectedCol];
-        boardData[selectedRow][selectedCol] = 0;
-        boardFlip();
-        turn *= -1;
+      if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Good")) {
+        if (kingDetection(turn)) {
+          boardData[row][col] = boardData[selectedRow][selectedCol];
+          boardData[selectedRow][selectedCol] = 0;
+          passantCount++;
+          boardFlip();
+          turn *= -1;
+        }
       }
     }
     clickCount = 1;
@@ -129,10 +134,10 @@ function mousePressed() {
 function boardFlip() {
   boardData.reverse();
 }
-function drawCircles(){
+function drawCircles() {
   for (let x = 0; x < 8; x++) {
     for (let y = 0; y < 8; y++) {
-      if(rules(boardData[selectedRow][selectedCol],y,x,selectedRow,selectedCol)){
+      if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
         stroke(150);
         fill(150);
         circle(x * 60 + 30, y * 60 + 30, 13);
@@ -140,14 +145,21 @@ function drawCircles(){
     }
   }
 }
-function rules(piece, row, col, selectedRow, selectedCol) {
+function rules(piece, row, col, selectedRow, selectedCol, func) {
   if (turn === 1) {
     if (boardData[row][col] === 0 || boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
       if (piece === wP) {
         if (selectedCol === col) {
           if (boardData[row][col] === 0) {
             if (selectedRow === 6) {
-              if (selectedRow === row + 1 || selectedRow === row + 2) {
+              if (selectedRow === row + 2) {
+                if (func === "Good") {
+                  passantCol = col;
+                  passantCount = 0;
+                }
+                return true;
+              }
+              else if (selectedRow === row + 1) {
                 return true;
               }
             }
@@ -158,10 +170,23 @@ function rules(piece, row, col, selectedRow, selectedCol) {
             }
           }
         }
+        else if (col === passantCol && row === 2) {
+          if (selectedRow === 3) {
+            if (selectedCol === passantCol + 1 || selectedCol === passantCol - 1) {
+              if (passantCount === 1) {
+                if (func === "Good") {
+                  boardData[3][passantCol] = 0;
+                  passantCol = 69;
+                }
+                return true;
+              }
+            }
+          }
+        }
         else if (col + 1 === selectedCol || col - 1 === selectedCol) {
           if (row === selectedRow - 1) {
             if (boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
-              return true;//placeholder
+              return true;
             }
           }
         }
@@ -221,17 +246,32 @@ function rules(piece, row, col, selectedRow, selectedCol) {
         }
       }
       else if (piece === wK) {
-        if (col + 1 === selectedCol && row+1===selectedRow) {
-          haswKMoved = true;
-          return true;
+        if (row + 1 === selectedRow || row - 1 === selectedRow) {
+          if (col + 1 === selectedCol || col === selectedCol || col - 1 === selectedCol) {
+            if (func === "Good") {
+              haswKMoved = true;
+            }
+            return true;
+          }
+        }
+        else if (col + 1 === selectedCol || col - 1 === selectedCol) {
+          if (row === selectedRow) {
+            if (func === "Good") {
+              haswKMoved = true;
+            }
+            return true;
+          }
         }
         else if (row === 7 && col === 6) {
           if (boardData[7][5] === 0) {
             if (boardData[7][7] === wR) {
               if (haswKMoved === false) {
-                boardData[7][7] = 0;
-                boardData[7][5] = wR;
-                haswKMoved = true;
+                //castle = true then in mousepressed?
+                if (func === "Good") {
+                  boardData[7][7] = 0;
+                  boardData[7][5] = wR;
+                  haswKMoved = true;
+                }
                 return true;
               }
             }
@@ -239,9 +279,12 @@ function rules(piece, row, col, selectedRow, selectedCol) {
         }
         else if (row === 7 && col === 2) {
           if (boardData[7][0] === wR && boardData[7][1] === 0 && boardData[7][3] === 0 && haswKMoved === false) {
-            boardData[7][0] = 0;
-            boardData[7][3] = wR;
-            haswKMoved = true;
+            if (func === "Good") {
+              boardData[7][0] = 0;
+              boardData[7][3] = wR;
+              haswKMoved = true;
+
+            }
             return true;
           }
         }
@@ -400,12 +443,32 @@ function rules(piece, row, col, selectedRow, selectedCol) {
         if (selectedCol === col) {
           if (boardData[row][col] === 0) {
             if (selectedRow === 6) {
-              if (selectedRow === row + 1 || selectedRow === row + 2) {
+              if (selectedRow === row + 2) {
+                if (func === "Good") {
+                  passantCol = col;
+                  passantCount = 0;
+                }
+                return true;
+              }
+              else if (selectedRow === row + 1) {
                 return true;
               }
             }
-            else if (row < 7) {
+            else if (row > 0) {
               if (selectedRow === row + 1) {
+                return true;
+              }
+            }
+          }
+        }
+        else if (col === passantCol && row === 2) {
+          if (selectedRow === 3) {
+            if (selectedCol === passantCol + 1 || selectedCol === passantCol - 1) {
+              if (passantCount === 1) {
+                if (func === "Good") {
+                  boardData[3][passantCol] = 0;
+                  passantCol = 69;
+                }
                 return true;
               }
             }
@@ -414,7 +477,7 @@ function rules(piece, row, col, selectedRow, selectedCol) {
         else if (col + 1 === selectedCol || col - 1 === selectedCol) {
           if (row === selectedRow - 1) {
             if (boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
-              return true;//placeholder
+              return true;
             }
           }
         }
@@ -474,17 +537,32 @@ function rules(piece, row, col, selectedRow, selectedCol) {
         }
       }
       else if (piece === bK) {
-        if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
-          hasbKMoved = true;
-          return true;
+        if (row + 1 === selectedRow || row - 1 === selectedRow) {
+          if (col + 1 === selectedCol || col === selectedCol || col - 1 === selectedCol) {
+            if (func === "Good") {
+              hasbKMoved = true;
+            }
+            return true;
+          }
+        }
+        else if (col + 1 === selectedCol || col - 1 === selectedCol) {
+          if (row === selectedRow) {
+            if (func === "Good") {
+              hasbKMoved = true;
+            }
+            return true;
+          }
         }
         else if (row === 7 && col === 6) {
           if (boardData[7][5] === 0) {
             if (boardData[7][7] === bR) {
               if (hasbKMoved === false) {
-                boardData[7][7] = 0;
-                boardData[7][5] = bR;
-                hasbKMoved = true;
+                //castle = true then in mousepressed?
+                if (func === "Good") {
+                  boardData[7][7] = 0;
+                  boardData[7][5] = bR;
+                  hasbKMoved = true;
+                }
                 return true;
               }
             }
@@ -492,9 +570,11 @@ function rules(piece, row, col, selectedRow, selectedCol) {
         }
         else if (row === 7 && col === 2) {
           if (boardData[7][0] === bR && boardData[7][1] === 0 && boardData[7][3] === 0 && hasbKMoved === false) {
-            boardData[7][0] = 0;
-            boardData[7][3] = bR;
-            hasbKMoved = true;
+            if (func === "Good") {
+              boardData[7][0] = 0;
+              boardData[7][3] = bR;
+              hasbKMoved = true;
+            }
             return true;
           }
         }
@@ -647,4 +727,23 @@ function rules(piece, row, col, selectedRow, selectedCol) {
       }
     }
   }
+}
+function kingDetection(turn) {
+  if (turn === 1) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (rules(wB, y, x, row, col, "Bad")) {
+          if (boardData[y][x] === bB || boardData[y][x] === bQ) {
+            return false;
+          }
+        }
+        if (rules(wR, y, x, row, col, "Bad")) {
+          if (boardData[y][x] === bR) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
 }
