@@ -1,10 +1,10 @@
 // Chess - capstone coding project
 // Elias and Rupam
 // dec 1st 2023
-//chess
+// 2 Player Chess Game
 let squareSize = 60;
 let bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR;
-let MoveSound;
+let sound;
 let boardData = [];
 let row;
 let col;
@@ -15,6 +15,10 @@ let hasbKMoved = false;
 let selectedPiece;
 let passantCol = 69;
 let passantCount = 100;
+let kingRow;
+let kingCol;
+let squareValue;
+let pinDetector = true;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -28,6 +32,8 @@ function preload() {
   wP = loadImage("assets/white pawn.png");
   wQ = loadImage("assets/white queen.png");
   wR = loadImage("assets/white rook.png");
+  sound = loadSound("assets/move-self.mp3");
+
 
   boardData = [
     [bR, bN, bB, bQ, bK, bB, bN, bR],
@@ -52,6 +58,14 @@ function draw() {
   renderPieces();
   drawCircles();
   selectionCircle();
+  //if (winChecker()) {
+   // if (turn === 1) {
+      //print("white wins");
+   // }
+    //else if (turn === -1) {
+    //  print("black wins");
+   // }
+  //}
 }
 function renderPieces() {
   for (let row = 0; row < 8; row++) {
@@ -117,14 +131,35 @@ function mousePressed() {
     }
   }
   else if (clickCount === 2) {
+    let kingMoved = false;
     if (row !== selectedRow || col !== selectedCol) {//double click line
       if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Good")) {
-        if (kingDetection(turn)) {
+        if (kingDetection(turn, selectedRow, selectedCol, row, col)) {
+          squareValue = boardData[row][col];
           boardData[row][col] = boardData[selectedRow][selectedCol];
           boardData[selectedRow][selectedCol] = 0;
-          passantCount++;
-          boardFlip();
-          turn *= -1;
+          if (boardData[row][col] === wK || boardData[row][col] === bK) {
+            passantCount++;
+            sound.play();
+            boardFlip();
+            turn *= -1;
+            kingMoved = true;
+          }
+          if (pinDetection(turn, selectedRow, selectedCol, row, col)) {
+            if (kingMoved === false) {
+              sound.play();
+              passantCount++;
+              boardFlip();
+              turn *= -1;
+            }
+          }
+          else {
+            if (kingMoved === false) {
+              pinDetector = false;
+              boardData[selectedRow][selectedCol] = boardData[row][col];
+              boardData[row][col] = squareValue;
+            }
+          }
         }
       }
     }
@@ -295,14 +330,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow - 1; r > 0; r--) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow - 1; r >= 0; r--) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -321,14 +364,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow + 1; r < 7; r++) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow + 1; r <= 7; r++) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -387,14 +438,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow - 1; r > 0; r--) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow - 1; r >= 0; r--) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -413,14 +472,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow + 1; r < 7; r++) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow + 1; r <= 7; r++) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -585,14 +652,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow - 1; r > 0; r--) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow - 1; r >= 0; r--) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -611,14 +686,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow + 1; r < 7; r++) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow + 1; r <= 7; r++) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -677,14 +760,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow - 1; r > 0; r--) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow - 1; r >= 0; r--) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -703,14 +794,22 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let colNeg = selectedCol;
           let maxCol = 100;
           let minCol = -100;
-          for (let r = selectedRow + 1; r < 7; r++) {
+          let maxNum = 0;
+          let minNum = 0;
+          for (let r = selectedRow + 1; r <= 7; r++) {
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
-              maxCol = colPos;
+              if (maxNum === 0) {
+                maxCol = colPos;
+                maxNum++;
+              }
             }
             if (boardData[r][colNeg] !== 0) {
-              minCol = colNeg;
+              if (minNum === 0) {
+                minCol = colNeg;
+                minNum--;
+              }
             }
             if (row === r && col === colPos) {
               if (col <= maxCol) {
@@ -728,17 +827,129 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
     }
   }
 }
-function kingDetection(turn) {
+function volume(){
+  
+}
+function kingDetection(turn, selectedRow, selectedCol, row, col) {
+  if (turn === 1) {
+    if (boardData[selectedRow][selectedCol] === wK) {
+      for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < 8; y++) {
+          if (rules(wB, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === bB || boardData[y][x] === bQ) {
+              return false;
+            }
+          }
+          boardData[selectedRow][selectedCol] = 0;
+          if (rules(wR, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === bR || boardData[y][x] === bQ) {
+              boardData[selectedRow][selectedCol] = wK;
+              return false;
+            }
+          }
+          boardData[selectedRow][selectedCol] = wK;
+          if (rules(wN, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === bN) {
+              return false;
+            }
+          }
+          if (rules(wP, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === bP) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (turn === -1) {
+    if (boardData[selectedRow][selectedCol] === bK) {
+      for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < 8; y++) {
+          if (rules(bB, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === wB || boardData[y][x] === wQ) {
+              return false;
+            }
+          }
+          boardData[selectedRow][selectedCol] = 0;
+          if (rules(bR, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === wR || boardData[y][x] === wQ) {
+              boardData[selectedRow][selectedCol] = bK;
+              return false;
+            }
+          }
+          boardData[selectedRow][selectedCol] = bK;
+          if (rules(bN, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === wN) {
+              return false;
+            }
+          }
+          if (rules(bP, y, x, row, col, "Bad")) {
+            if (boardData[y][x] === wP) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+function pinDetection(turn, selectedRow, selectedCol, row, col) {
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
-        if (rules(wB, y, x, row, col, "Bad")) {
+        if (boardData[y][x] === wK) {
+          kingRow = y;
+          kingCol = x;
+        }
+        if (rules(wB, y, x, kingRow, kingCol, "Bad")) {
           if (boardData[y][x] === bB || boardData[y][x] === bQ) {
             return false;
           }
         }
-        if (rules(wR, y, x, row, col, "Bad")) {
-          if (boardData[y][x] === bR) {
+        if (rules(wR, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === bR || boardData[y][x] === bQ) {
+            return false;
+          }
+        }
+        if (rules(wN, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === bN) {
+            return false;
+          }
+        }
+        if (rules(wP, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === bP) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  if (turn === -1) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (boardData[y][x] === bK) {
+          kingRow = y;
+          kingCol = x;
+        }
+        if (rules(bB, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === wB || boardData[y][x] === wQ) {
+            return false;
+          }
+        }
+        if (rules(bR, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === wR || boardData[y][x] === wQ) {
+            return false;
+          }
+        }
+        if (rules(bN, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === wN) {
+            return false;
+          }
+        }
+        if (rules(bP, y, x, kingRow, kingCol, "Bad")) {
+          if (boardData[y][x] === wP) {
             return false;
           }
         }
@@ -746,4 +957,36 @@ function kingDetection(turn) {
     }
   }
   return true;
+}
+function winChecker() {
+  let kingMoved = false;
+  if (row !== selectedRow || col !== selectedCol) {//double click line
+    if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Bad")) {
+      if (kingDetection(turn, selectedRow, selectedCol, row, col)) {
+        squareValue = boardData[row][col];
+        boardData[row][col] = boardData[selectedRow][selectedCol];
+        boardData[selectedRow][selectedCol] = 0;
+        if (boardData[row][col] === wK || boardData[row][col] === bK) {
+          passantCount++;
+          boardFlip();
+          turn *= -1;
+          kingMoved = true;
+        }
+        if (pinDetection(turn, selectedRow, selectedCol, row, col)) {
+          if (kingMoved === false) {
+            passantCount++;
+            boardFlip();
+            turn *= -1;
+          }
+        }
+        else {
+          if (kingMoved === false) {
+            pinDetector = false;
+            boardData[selectedRow][selectedCol] = boardData[row][col];
+            boardData[row][col] = squareValue;
+          }
+        }
+      }
+    }
+  }
 }
