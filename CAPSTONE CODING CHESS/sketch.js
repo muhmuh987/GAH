@@ -5,6 +5,7 @@
 let squareSize = 60;
 let bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR;
 let sound;
+let soundamount = 0.1;
 let boardData = [];
 let row;
 let col;
@@ -19,6 +20,8 @@ let kingRow;
 let kingCol;
 let squareValue;
 let pinDetector = true;
+let squareValue2;
+let textChange = 5;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -36,13 +39,13 @@ function preload() {
 
 
   boardData = [
-    [bR, bN, bB, bQ, bK, bB, bN, bR],
-    [bP, bP, bP, bP, bP, bP, bP, bP],
+    [0, 0, 0, 0, bK, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [wP, wP, wP, wP, wP, wP, wP, wP],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, wP, wP, wP, 0, wP, wP, wP],
     [wR, wN, wB, wQ, wK, wB, wN, wR]
   ];
 }
@@ -58,14 +61,25 @@ function draw() {
   renderPieces();
   drawCircles();
   selectionCircle();
-  //if (winChecker()) {
-   // if (turn === 1) {
-      //print("white wins");
-   // }
-    //else if (turn === -1) {
-    //  print("black wins");
-   // }
-  //}
+  keyPressed();
+  if (winChecker()) {
+    if (turn === 1) {
+      fill(20);
+      textSize(textChange);
+      if (textChange < 90) {
+        textChange++;
+      }
+      text("Black Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
+    }
+    else if (turn === -1) {
+      fill(235);
+      textSize(textChange);
+      if (textChange < 90) {
+        textChange++;
+      }
+      text("White Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
+    }
+  }
 }
 function renderPieces() {
   for (let row = 0; row < 8; row++) {
@@ -188,11 +202,13 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           if (boardData[row][col] === 0) {
             if (selectedRow === 6) {
               if (selectedRow === row + 2) {
-                if (func === "Good") {
-                  passantCol = col;
-                  passantCount = 0;
+                if (boardData[row + 1][col] === 0) {
+                  if (func === "Good") {
+                    passantCol = col;
+                    passantCount = 0;
+                  }
+                  return true;
                 }
-                return true;
               }
               else if (selectedRow === row + 1) {
                 return true;
@@ -511,9 +527,11 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           if (boardData[row][col] === 0) {
             if (selectedRow === 6) {
               if (selectedRow === row + 2) {
-                if (func === "Good") {
-                  passantCol = col;
-                  passantCount = 0;
+                if (boardData[row + 1][col] === 0) {
+                  if (func === "Good") {
+                    passantCol = col;
+                    passantCount = 0;
+                  }
                 }
                 return true;
               }
@@ -827,8 +845,14 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
     }
   }
 }
-function volume(){
-  
+function keyPressed() {
+  sound.setVolume();
+  if (key === "a") {
+    sound.setVolume += soundamount;
+  }
+  if (key === "s") {
+    sound.setVolume -= soundamount;
+  }
 }
 function kingDetection(turn, selectedRow, selectedCol, row, col) {
   if (turn === 1) {
@@ -959,34 +983,36 @@ function pinDetection(turn, selectedRow, selectedCol, row, col) {
   return true;
 }
 function winChecker() {
-  let kingMoved = false;
-  if (row !== selectedRow || col !== selectedCol) {//double click line
-    if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Bad")) {
-      if (kingDetection(turn, selectedRow, selectedCol, row, col)) {
-        squareValue = boardData[row][col];
-        boardData[row][col] = boardData[selectedRow][selectedCol];
-        boardData[selectedRow][selectedCol] = 0;
-        if (boardData[row][col] === wK || boardData[row][col] === bK) {
-          passantCount++;
-          boardFlip();
-          turn *= -1;
-          kingMoved = true;
-        }
-        if (pinDetection(turn, selectedRow, selectedCol, row, col)) {
-          if (kingMoved === false) {
-            passantCount++;
-            boardFlip();
-            turn *= -1;
-          }
-        }
-        else {
-          if (kingMoved === false) {
-            pinDetector = false;
-            boardData[selectedRow][selectedCol] = boardData[row][col];
-            boardData[row][col] = squareValue;
+  for (let selectedCol2 = 0; selectedCol2 < 8; selectedCol2++) {
+    for (let selectedRow2 = 0; selectedRow2 < 8; selectedRow2++) {
+      for (let col2 = 0; col2 < 8; col2++) {
+        for (let row2 = 0; row2 < 8; row2++) {
+          let kingMoved = false;
+          if (row2 !== selectedRow2 || col2 !== selectedCol2) {//double click line
+            if (rules(boardData[selectedRow2][selectedCol2], row2, col2, selectedRow2, selectedCol2, "Bad")) {
+              if (kingDetection(turn, selectedRow2, selectedCol2, row2, col2)) {
+                if (boardData[selectedRow2][selectedCol2] === wK || boardData[selectedRow2][selectedCol2] === bK) {
+                  return false;
+                }
+                squareValue2 = boardData[row2][col2];
+                boardData[row2][col2] = boardData[selectedRow2][selectedCol2];
+                boardData[selectedRow2][selectedCol2] = 0;
+                if (pinDetection(turn, selectedRow2, selectedCol2, row2, col2)) {
+                  if (kingMoved === false) {
+                    boardData[selectedRow2][selectedCol2] = boardData[row2][col2];
+                    boardData[row2][col2] = squareValue2;
+                    return false;
+                  }
+                }
+                boardData[selectedRow2][selectedCol2] = boardData[row2][col2];
+                boardData[row2][col2] = squareValue2;
+              }
+            }
           }
         }
       }
     }
   }
+  
+  return true;
 }
