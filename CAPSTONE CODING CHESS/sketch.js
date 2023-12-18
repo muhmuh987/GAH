@@ -22,6 +22,7 @@ let squareValue;
 let pinDetector = true;
 let squareValue2;
 let textChange = 5;
+let stalemate = false;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -38,15 +39,15 @@ function preload() {
   sound = loadSound("assets/move-self.mp3");
 
 
-  boardData = [
-    [0, 0, 0, 0, bK, 0, 0, 0],
+  boardData = [ 
+    [bR, bN, bB, bQ, bK, bB, bN, bR],
+    [0, 0, 0, 0, 0, 0, 0, bP],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, wP, wP, wP, 0, wP, wP, wP],
-    [wR, wN, wB, wQ, wK, wB, wN, wR]
+    [0, 0, 0, 0, wK, 0, 0, 0]
   ];
 }
 function setup() {
@@ -59,6 +60,7 @@ function draw() {
   col = getCurrentX();
   chessBoard();
   renderPieces();
+  kingPos();
   drawCircles();
   selectionCircle();
   keyPressed();
@@ -80,6 +82,14 @@ function draw() {
       text("White Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
     }
   }
+  if(stalemate === true){
+    fill(125);
+    textSize(textChange);
+    if (textChange < 90) {
+      textChange++;
+    }
+    text("Stalemate!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
+  }
 }
 function renderPieces() {
   for (let row = 0; row < 8; row++) {
@@ -91,6 +101,7 @@ function renderPieces() {
   }
 }
 function chessBoard() {
+  stroke(0);
   let c = "green";
   if (turn === 1) {
     c = "green";
@@ -919,6 +930,28 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
   }
   return true;
 }
+function kingPos() {
+  if (turn === 1) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (boardData[y][x] === wK) {
+          kingRow = y;
+          kingCol = x;
+        }
+      }
+    }
+  }
+  else if (turn === -1) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (boardData[y][x] === bK) {
+          kingRow = y;
+          kingCol = x;
+        }
+      }
+    }
+  }
+}
 function pinDetection(turn, selectedRow, selectedCol, row, col) {
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
@@ -1013,6 +1046,93 @@ function winChecker() {
       }
     }
   }
-  
+  if (turn === -1) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (boardData[y][x] === bK) {
+          kingRow = y;
+          kingCol = x;
+        }
+        if (boardData[y][x] === wB || boardData[y][x] === wQ) {
+          boardData[kingRow][kingCol] = wK;
+          if (rules(bB, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = bK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = bK;
+        }
+        if (boardData[y][x] === wR || boardData[y][x] === wQ) {
+          boardData[kingRow][kingCol] = wK;
+          if (rules(bR, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = bK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = bK;
+        }
+        if (boardData[y][x] === wN) {
+          boardData[kingRow][kingCol] = wK;
+          if (rules(bN, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = bK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = bK;
+        }
+        if (boardData[y][x] === wP) {
+          boardData[kingRow][kingCol] = wK;
+          if (rules(bP, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = bK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = bK;
+        }
+      }
+    }
+    stalemate = true;
+    return false;
+  }
+  if (turn === 1) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (boardData[y][x] === wK) {
+          kingRow = y;
+          kingCol = x;
+        }
+        if (boardData[y][x] === bB || boardData[y][x] === bQ) {
+          boardData[kingRow][kingCol] = bK;
+          if (rules(wB, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = wK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = wK;
+        }
+        if (boardData[y][x] === bR || boardData[y][x] === bQ) {
+          boardData[kingRow][kingCol] = bK;
+          if (rules(wR, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = wK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = wK;
+        }
+        if (boardData[y][x] === bN) {
+          boardData[kingRow][kingCol] = bK;
+          if (rules(wN, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = wK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = wK;
+        }
+        if (boardData[y][x] === bP) {
+          boardData[kingRow][kingCol] = bK;
+          if (rules(wP, kingRow, kingCol, y, x, "that one")) {
+            boardData[kingRow][kingCol] = wK;
+            return true;
+          }
+          boardData[kingRow][kingCol] = wK;
+        }
+      }
+    }
+    stalemate = true;
+    return false;
+  }
   return true;
 }
