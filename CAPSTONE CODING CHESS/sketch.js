@@ -23,6 +23,10 @@ let pinDetector = true;
 let squareValue2;
 let textChange = 5;
 let stalemate = false;
+let pc = "do nothing";
+let pawnRow;
+let pawnCol;
+let board2;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -37,18 +41,17 @@ function preload() {
   wQ = loadImage("assets/white queen.png");
   wR = loadImage("assets/white rook.png");
   sound = loadSound("assets/move-self.mp3");
-
-
-  boardData = [ 
+  boardData = [
     [bR, bN, bB, bQ, bK, bB, bN, bR],
-    [0, 0, 0, 0, 0, 0, 0, bP],
+    [bP, bP, bP, bP, bP, bP, bP, bP],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, wK, 0, 0, 0]
+    [wP, wP, wP, wP, wP, wP, wP, wP],
+    [wR, wN, wB, wQ, wK, wB, wN, wR]
   ];
+  board2 = boardData;
 }
 function setup() {
   createCanvas(60 * 8, 60 * 8);
@@ -60,6 +63,7 @@ function draw() {
   col = getCurrentX();
   chessBoard();
   renderPieces();
+  pawnPromotionDrawing(pc);
   kingPos();
   drawCircles();
   selectionCircle();
@@ -82,7 +86,7 @@ function draw() {
       text("White Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
     }
   }
-  if(stalemate === true){
+  if (stalemate === true) {
     fill(125);
     textSize(textChange);
     if (textChange < 90) {
@@ -147,6 +151,25 @@ function selectionCircle() {
 }
 let selectedRow = 6;
 let selectedCol = 0;
+function pawnPromotionDrawing(pc) {
+  fill(0);
+  stroke('red');
+  if (pc === wP) {
+    rect(180, 180, 120, 120);
+    image(wN, 180, 180, 60, 60);
+    image(wR, 240, 180, 60, 60);
+    image(wQ, 180, 240, 60, 60);
+    image(wB, 240, 240, 60, 60);
+  }
+  else if (pc === bP) {
+    fill(255);
+    rect(180, 180, 120, 120);
+    image(bN, 180, 180, 60, 60);
+    image(bR, 240, 180, 60, 60);
+    image(bQ, 180, 240, 60, 60);
+    image(bB, 240, 240, 60, 60);
+  }
+}
 function mousePressed() {
   if (clickCount === 1) {
     if (boardData[row][col] !== 0) {
@@ -164,18 +187,47 @@ function mousePressed() {
           boardData[row][col] = boardData[selectedRow][selectedCol];
           boardData[selectedRow][selectedCol] = 0;
           if (boardData[row][col] === wK || boardData[row][col] === bK) {
-            passantCount++;
-            sound.play();
-            boardFlip();
-            turn *= -1;
-            kingMoved = true;
+            if (boardData[row][col] === wP && row === 0) {
+              pawnRow = row;
+              pawnCol = col;
+              pc = wP;
+              clickCount = 3;
+            }
+            else if (boardData[row][col] === bP && row === 0) {
+              pawnRow = row;
+              pawnCol = col;
+              pc = bP;
+              clickCount = 3;
+            }
+            else {
+              passantCount++;
+              sound.play();
+              boardFlip();
+              turn *= -1;
+              kingMoved = true;
+            }
           }
           if (pinDetection(turn, selectedRow, selectedCol, row, col)) {
             if (kingMoved === false) {
-              sound.play();
-              passantCount++;
-              boardFlip();
-              turn *= -1;
+              if (boardData[row][col] === wP && row === 0) {
+                pawnRow = row;
+                pawnCol = col;
+                pc = wP;
+                clickCount = 3;
+              }
+              else if (boardData[row][col] === bP && row === 0) {
+                pawnRow = row;
+                pawnCol = col;
+                pc = bP;
+                clickCount = 3;
+              }
+              else {
+                passantCount++;
+                sound.play();
+                boardFlip();
+                turn *= -1;
+                kingMoved = true;
+              }
             }
           }
           else {
@@ -188,7 +240,95 @@ function mousePressed() {
         }
       }
     }
-    clickCount = 1;
+    if (clickCount === 2) {
+      clickCount = 1;
+    }
+  }
+  else if (clickCount >= 3) {
+    if (pc === wP) {
+      if (row === 3) {
+        if (col === 3) {
+          boardData[pawnRow][pawnCol] = wN;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+        if (col === 4) {
+          boardData[pawnRow][pawnCol] = wR;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+      }
+      if (row === 4) {
+        if (col === 3) {
+          boardData[pawnRow][pawnCol] = wQ;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+        if (col === 4) {
+          boardData[pawnRow][pawnCol] = wB;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+      }
+    }
+    else if(pc === bP){
+      if (row === 3) {
+        if (col === 3) {
+          boardData[pawnRow][pawnCol] = bN;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+        if (col === 4) {
+          boardData[pawnRow][pawnCol] = bR;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+      }
+      if (row === 4) {
+        if (col === 3) {
+          boardData[pawnRow][pawnCol] = bQ;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+        if (col === 4) {
+          boardData[pawnRow][pawnCol] = bB;
+          clickCount = 1;
+          passantCount++;
+          sound.play();
+          boardFlip();
+          turn *= -1;
+          pc = "do nothing";
+        }
+      }
+    }
   }
 }
 function boardFlip() {
@@ -225,7 +365,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                 return true;
               }
             }
-            else if (row > 0) {
+            else if (row >= 0) {
               if (selectedRow === row + 1) {
                 return true;
               }
@@ -550,7 +690,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                 return true;
               }
             }
-            else if (row > 0) {
+            else if (row >= 0) {
               if (selectedRow === row + 1) {
                 return true;
               }
