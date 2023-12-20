@@ -27,6 +27,7 @@ let pc = "do nothing";
 let pawnRow;
 let pawnCol;
 let board2;
+let squareValue3;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -153,7 +154,7 @@ let selectedRow = 6;
 let selectedCol = 0;
 function pawnPromotionDrawing(pc) {
   fill(0);
-  stroke('red');
+  stroke("red");
   if (pc === wP) {
     rect(180, 180, 120, 120);
     image(wN, 180, 180, 60, 60);
@@ -181,7 +182,7 @@ function mousePressed() {
   else if (clickCount === 2) {
     let kingMoved = false;
     if (row !== selectedRow || col !== selectedCol) {//double click line
-      if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Good")) {
+      if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Bad")) {
         if (kingDetection(turn, selectedRow, selectedCol, row, col)) {
           squareValue = boardData[row][col];
           boardData[row][col] = boardData[selectedRow][selectedCol];
@@ -202,6 +203,11 @@ function mousePressed() {
             else {
               passantCount++;
               sound.play();
+              boardData[selectedRow][selectedCol] = boardData[row][col];
+              boardData[row][col] = squareValue;
+              rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Good");
+              boardData[row][col] = boardData[selectedRow][selectedCol];
+              boardData[selectedRow][selectedCol] = 0;
               boardFlip();
               turn *= -1;
               kingMoved = true;
@@ -224,6 +230,11 @@ function mousePressed() {
               else {
                 passantCount++;
                 sound.play();
+                boardData[selectedRow][selectedCol] = boardData[row][col];
+                boardData[row][col] = squareValue;
+                rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Good");
+                boardData[row][col] = boardData[selectedRow][selectedCol];
+                boardData[selectedRow][selectedCol] = 0;
                 boardFlip();
                 turn *= -1;
                 kingMoved = true;
@@ -287,7 +298,7 @@ function mousePressed() {
         }
       }
     }
-    else if(pc === bP){
+    else if (pc === bP) {
       if (row === 3) {
         if (col === 3) {
           boardData[pawnRow][pawnCol] = bN;
@@ -338,9 +349,18 @@ function drawCircles() {
   for (let x = 0; x < 8; x++) {
     for (let y = 0; y < 8; y++) {
       if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
-        stroke(150);
-        fill(150);
-        circle(x * 60 + 30, y * 60 + 30, 13);
+        if(kingDetection(turn, selectedRow, selectedCol, y, x)){
+          squareValue3 = boardData[y][x];
+          boardData[y][x] = boardData[selectedRow][selectedCol];
+          boardData[selectedRow][selectedCol] = 0;
+          if(pinDetection(turn,selectedRow,selectedCol,y,x)){
+            stroke(150);
+            fill(150);
+            circle(x * 60 + 30, y * 60 + 30, 13);
+          }
+          boardData[selectedRow][selectedCol] = boardData[y][x];
+          boardData[y][x] = squareValue3;
+        }
       }
     }
   }
@@ -468,7 +488,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           if (boardData[7][5] === 0) {
             if (boardData[7][7] === wR) {
               if (haswKMoved === false) {
-                //castle = true then in mousepressed?
+                if(pinDetection(turn,selectedRow,selectedCol,row,col))
                 if (func === "Good") {
                   boardData[7][7] = 0;
                   boardData[7][5] = wR;
@@ -1010,10 +1030,13 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
     if (boardData[selectedRow][selectedCol] === wK) {
       for (let x = 0; x < 8; x++) {
         for (let y = 0; y < 8; y++) {
+          boardData[selectedRow][selectedCol] = 0;
           if (rules(wB, y, x, row, col, "Bad")) {
             if (boardData[y][x] === bB || boardData[y][x] === bQ) {
+              boardData[selectedRow][selectedCol] = wK;
               return false;
             }
+            boardData[selectedRow][selectedCol] = wK;
           }
           boardData[selectedRow][selectedCol] = 0;
           if (rules(wR, y, x, row, col, "Bad")) {
@@ -1041,10 +1064,13 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
     if (boardData[selectedRow][selectedCol] === bK) {
       for (let x = 0; x < 8; x++) {
         for (let y = 0; y < 8; y++) {
+          boardData[selectedRow][selectedCol] = 0;
           if (rules(bB, y, x, row, col, "Bad")) {
             if (boardData[y][x] === wB || boardData[y][x] === wQ) {
+              boardData[selectedRow][selectedCol] = wK;
               return false;
             }
+            boardData[selectedRow][selectedCol] = wK;
           }
           boardData[selectedRow][selectedCol] = 0;
           if (rules(bR, y, x, row, col, "Bad")) {
@@ -1092,7 +1118,7 @@ function kingPos() {
     }
   }
 }
-function pinDetection(turn, selectedRow, selectedCol, row, col) {
+function pinDetection(turn, selectedRow, selectedCol, row, col,func) {
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
