@@ -28,6 +28,8 @@ let pawnRow;
 let pawnCol;
 let board2;
 let squareValue3;
+let wc = 0;
+let bc = 0;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -69,7 +71,11 @@ function draw() {
   drawCircles();
   selectionCircle();
   keyPressed();
+  stalemateByInsufficient();
   if (winChecker()) {
+    fill(0);
+    textSize(15);
+    text("Play Again!",200,155);
     if (turn === 1) {
       fill(20);
       textSize(textChange);
@@ -88,6 +94,9 @@ function draw() {
     }
   }
   if (stalemate === true) {
+    fill(0);
+    textSize(15);
+    text("Play Again!",200,155);
     fill(125);
     textSize(textChange);
     if (textChange < 90) {
@@ -172,6 +181,24 @@ function pawnPromotionDrawing(pc) {
   }
 }
 function mousePressed() {
+  if(winChecker()||stalemate){
+    if(row === 2){
+      if(col === 3 || col === 4){
+        boardData = [
+          [bR, bN, bB, bQ, bK, bB, bN, bR],
+          [bP, bP, bP, bP, bP, bP, bP, bP],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [wP, wP, wP, wP, wP, wP, wP, wP],
+          [wR, wN, wB, wQ, wK, wB, wN, wR]
+        ];
+        textChange = 10;
+        stalemate = false;
+      }
+    }
+  }
   if (clickCount === 1) {
     if (boardData[row][col] !== 0) {
       selectedRow = row;
@@ -349,11 +376,11 @@ function drawCircles() {
   for (let x = 0; x < 8; x++) {
     for (let y = 0; y < 8; y++) {
       if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
-        if(kingDetection(turn, selectedRow, selectedCol, y, x)){
+        if (kingDetection(turn, selectedRow, selectedCol, y, x)) {
           squareValue3 = boardData[y][x];
           boardData[y][x] = boardData[selectedRow][selectedCol];
           boardData[selectedRow][selectedCol] = 0;
-          if(pinDetection(turn,selectedRow,selectedCol,y,x)){
+          if (pinDetection(turn, selectedRow, selectedCol, y, x)) {
             stroke(150);
             fill(150);
             circle(x * 60 + 30, y * 60 + 30, 13);
@@ -488,26 +515,50 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           if (boardData[7][5] === 0) {
             if (boardData[7][7] === wR) {
               if (haswKMoved === false) {
-                if(pinDetection(turn,selectedRow,selectedCol,row,col))
-                if (func === "Good") {
-                  boardData[7][7] = 0;
-                  boardData[7][5] = wR;
-                  haswKMoved = true;
+                if (pinDetection(turn)) {
+                  boardData[7][5] = wK;
+                  boardData[7][4] = 0;
+                  kingPos();
+                  if (pinDetection(turn)) {
+                    boardData[7][5] = 0;
+                    boardData[7][4] = wK;
+                    if (func === "Good") {
+                      boardData[7][7] = 0;
+                      boardData[7][5] = wR;
+                      haswKMoved = true;
+                      boardData[7][5] = wR;
+                      boardData[7][4] = wK;
+                    }
+                    return true;
+                  }
+                  boardData[7][5] = 0;
+                  boardData[7][4] = wK;
                 }
-                return true;
               }
             }
           }
         }
         else if (row === 7 && col === 2) {
           if (boardData[7][0] === wR && boardData[7][1] === 0 && boardData[7][3] === 0 && haswKMoved === false) {
-            if (func === "Good") {
-              boardData[7][0] = 0;
-              boardData[7][3] = wR;
-              haswKMoved = true;
-
+            if (pinDetection(turn)) {
+              boardData[7][3] = wK;
+              boardData[7][4] = 0;
+              kingPos();
+              if (pinDetection(turn)) {
+                boardData[7][3] = 0;
+                boardData[7][4] = wK;
+                if (func === "Good") {
+                  boardData[7][0] = 0;
+                  boardData[7][3] = wR;
+                  haswKMoved = true;
+                  boardData[7][3] = wR;
+                  boardData[7][4] = wK;
+                }
+                return true;
+              }
+              boardData[7][3] = 0;
+              boardData[7][4] = wK;
             }
-            return true;
           }
         }
       }
@@ -813,25 +864,50 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           if (boardData[7][5] === 0) {
             if (boardData[7][7] === bR) {
               if (hasbKMoved === false) {
-                //castle = true then in mousepressed?
-                if (func === "Good") {
-                  boardData[7][7] = 0;
-                  boardData[7][5] = bR;
-                  hasbKMoved = true;
+                if (pinDetection(turn)) {
+                  boardData[7][5] = bK;
+                  boardData[7][4] = 0;
+                  kingPos();
+                  if (pinDetection(turn)) {
+                    boardData[7][5] = 0;
+                    boardData[7][4] = bK;
+                    if (func === "Good") {
+                      boardData[7][7] = 0;
+                      boardData[7][5] = bR;
+                      hasbKMoved = true;
+                      boardData[7][5] = bR;
+                      boardData[7][4] = bK;
+                    }
+                    return true;
+                  }
+                  boardData[7][5] = 0;
+                  boardData[7][4] = bK;
                 }
-                return true;
               }
             }
           }
         }
         else if (row === 7 && col === 2) {
           if (boardData[7][0] === bR && boardData[7][1] === 0 && boardData[7][3] === 0 && hasbKMoved === false) {
-            if (func === "Good") {
-              boardData[7][0] = 0;
-              boardData[7][3] = bR;
-              hasbKMoved = true;
+            if (pinDetection(turn)) {
+              boardData[7][3] = bK;
+              boardData[7][4] = 0;
+              kingPos();
+              if (pinDetection(turn)) {
+                boardData[7][3] = 0;
+                boardData[7][4] = bK;
+                if (func === "Good") {
+                  boardData[7][0] = 0;
+                  boardData[7][3] = bR;
+                  hasbKMoved = true;
+                  boardData[7][3] = bR;
+                  boardData[7][4] = bK;
+                }
+                return true;
+              }
+              boardData[7][3] = 0;
+              boardData[7][4] = bK;
             }
-            return true;
           }
         }
       }
@@ -1067,10 +1143,10 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
           boardData[selectedRow][selectedCol] = 0;
           if (rules(bB, y, x, row, col, "Bad")) {
             if (boardData[y][x] === wB || boardData[y][x] === wQ) {
-              boardData[selectedRow][selectedCol] = wK;
+              boardData[selectedRow][selectedCol] = bK;
               return false;
             }
-            boardData[selectedRow][selectedCol] = wK;
+            boardData[selectedRow][selectedCol] = bK;
           }
           boardData[selectedRow][selectedCol] = 0;
           if (rules(bR, y, x, row, col, "Bad")) {
@@ -1118,7 +1194,7 @@ function kingPos() {
     }
   }
 }
-function pinDetection(turn, selectedRow, selectedCol, row, col,func) {
+function pinDetection(turn, selectedRow, selectedCol, row, col, func) {
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
@@ -1301,4 +1377,34 @@ function winChecker() {
     return false;
   }
   return true;
+}
+function stalemateByInsufficient(){
+  wc = 0;
+  bc = 0;
+  for(let x = 0; x<8;x++){
+    for(let y = 0; y<8;y++){
+      if(boardData[y][x] === bP || boardData[y][x] === wP){
+        return false;
+      }
+      if(boardData[y][x] === bR || boardData[y][x] === wR){
+        return false;
+      }
+      if(boardData[y][x] === bQ || boardData[y][x] === wQ){
+        return false;
+      }
+      if(boardData[y][x] === wB || boardData[y][x] === wN){
+        wc++;
+      }
+      if(boardData[y][x] === bB || boardData[y][x] === bN){
+        bc++;
+      }
+    }
+  }
+  if(wc<=1&&bc <= 1){
+    stalemate = true;
+    return false;
+  }
+  else{
+    return false;
+  }
 }
