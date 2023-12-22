@@ -30,6 +30,8 @@ let board2;
 let squareValue3;
 let wc = 0;
 let bc = 0;
+let victorySound;
+let soundCount = 0;
 function preload() {
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
@@ -44,6 +46,7 @@ function preload() {
   wQ = loadImage("assets/white queen.png");
   wR = loadImage("assets/white rook.png");
   sound = loadSound("assets/move-self.mp3");
+  victorySound = loadSound("assets/victory noise.mp3");
   boardData = [
     [bR, bN, bB, bQ, bK, bB, bN, bR],
     [bP, bP, bP, bP, bP, bP, bP, bP],
@@ -57,13 +60,14 @@ function preload() {
   board2 = boardData;
 }
 function setup() {
-  createCanvas(60 * 8, 60 * 8);
+  createCanvas(60 * 9, 60 * 9);
   document.addEventListener("contextmenu", event => event.preventDefault());
 }
 
 function draw() {
   row = getCurrentY();
   col = getCurrentX();
+  background(255);
   chessBoard();
   renderPieces();
   pawnPromotionDrawing(pc);
@@ -73,9 +77,13 @@ function draw() {
   keyPressed();
   stalemateByInsufficient();
   if (winChecker()) {
+    if(soundCount === 0){
+      victorySound.play();
+    }
+    soundCount++;
     fill(0);
     textSize(15);
-    text("Play Again!",200,155);
+    text("Play Again!", 200, 155);
     if (turn === 1) {
       fill(20);
       textSize(textChange);
@@ -96,7 +104,7 @@ function draw() {
   if (stalemate === true) {
     fill(0);
     textSize(15);
-    text("Play Again!",200,155);
+    text("Play Again!", 200, 155);
     fill(125);
     textSize(textChange);
     if (textChange < 90) {
@@ -181,9 +189,11 @@ function pawnPromotionDrawing(pc) {
   }
 }
 function mousePressed() {
-  if(winChecker()||stalemate){
-    if(row === 2){
-      if(col === 3 || col === 4){
+  if (winChecker() || stalemate) {
+    if (row === 2) {
+      if (col === 3 || col === 4) {
+        turn = 1;
+        soundCount = 0;
         boardData = [
           [bR, bN, bB, bQ, bK, bB, bN, bR],
           [bP, bP, bP, bP, bP, bP, bP, bP],
@@ -377,6 +387,11 @@ function drawCircles() {
     for (let y = 0; y < 8; y++) {
       if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
         if (kingDetection(turn, selectedRow, selectedCol, y, x)) {
+          if (boardData[selectedRow][selectedCol] === wK || boardData[selectedRow][selectedCol] === bK) {
+            stroke(150);
+            fill(150);
+            circle(x * 60 + 30, y * 60 + 30, 13);
+          }
           squareValue3 = boardData[y][x];
           boardData[y][x] = boardData[selectedRow][selectedCol];
           boardData[selectedRow][selectedCol] = 0;
@@ -1321,7 +1336,7 @@ function winChecker() {
         }
         if (boardData[y][x] === wP) {
           boardData[kingRow][kingCol] = wK;
-          if (rules(bP, kingRow, kingCol, y, x, "that one")) {
+          if (rules(bP, y, x, kingRow, kingCol, "that one")) {
             boardData[kingRow][kingCol] = bK;
             return true;
           }
@@ -1365,7 +1380,7 @@ function winChecker() {
         }
         if (boardData[y][x] === bP) {
           boardData[kingRow][kingCol] = bK;
-          if (rules(wP, kingRow, kingCol, y, x, "that one")) {
+          if (rules(wP, y, x, kingRow, kingCol, "that one")) {
             boardData[kingRow][kingCol] = wK;
             return true;
           }
@@ -1378,33 +1393,33 @@ function winChecker() {
   }
   return true;
 }
-function stalemateByInsufficient(){
+function stalemateByInsufficient() {
   wc = 0;
   bc = 0;
-  for(let x = 0; x<8;x++){
-    for(let y = 0; y<8;y++){
-      if(boardData[y][x] === bP || boardData[y][x] === wP){
+  for (let x = 0; x < 8; x++) {
+    for (let y = 0; y < 8; y++) {
+      if (boardData[y][x] === bP || boardData[y][x] === wP) {
         return false;
       }
-      if(boardData[y][x] === bR || boardData[y][x] === wR){
+      if (boardData[y][x] === bR || boardData[y][x] === wR) {
         return false;
       }
-      if(boardData[y][x] === bQ || boardData[y][x] === wQ){
+      if (boardData[y][x] === bQ || boardData[y][x] === wQ) {
         return false;
       }
-      if(boardData[y][x] === wB || boardData[y][x] === wN){
+      if (boardData[y][x] === wB || boardData[y][x] === wN) {
         wc++;
       }
-      if(boardData[y][x] === bB || boardData[y][x] === bN){
+      if (boardData[y][x] === bB || boardData[y][x] === bN) {
         bc++;
       }
     }
   }
-  if(wc<=1&&bc <= 1){
+  if (wc <= 1 && bc <= 1) {
     stalemate = true;
     return false;
   }
-  else{
+  else {
     return false;
   }
 }
