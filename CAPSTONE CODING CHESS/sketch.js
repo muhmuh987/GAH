@@ -2,10 +2,11 @@
 // Elias and Rupam
 // dec 1st 2023
 // 2 Player Chess Game
+
+//Global Variables
 let squareSize = 60;
 let bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR;
 let sound;
-let soundamount = 0.1;
 let boardData = [];
 let row;
 let col;
@@ -32,7 +33,11 @@ let wc = 0;
 let bc = 0;
 let victorySound;
 let soundCount = 0;
+let totalWhiteWin = 0;
+let totalBlackWin = 0;
+let thingy = 1;
 function preload() {
+  //loads a bunch a stuff
   bB = loadImage("assets/black bishop.png");
   bK = loadImage("assets/black king.png");
   bN = loadImage("assets/black knight.png");
@@ -47,7 +52,7 @@ function preload() {
   wR = loadImage("assets/white rook.png");
   sound = loadSound("assets/move-self.mp3");
   victorySound = loadSound("assets/victory noise.mp3");
-  boardData = [
+  boardData = [//sets board up with images as data so it's easy to render
     [bR, bN, bB, bQ, bK, bB, bN, bR],
     [bP, bP, bP, bP, bP, bP, bP, bP],
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -62,9 +67,22 @@ function preload() {
 function setup() {
   createCanvas(60 * 9, 60 * 9);
   document.addEventListener("contextmenu", event => event.preventDefault());
+  if(localStorage.getItem("white win")===null){  //no key yet
+    localStorage.setItem("white win", 0);
+  }
+  else{
+    totalWhiteWin = int(localStorage.getItem("white win"));
+  }
+  if(localStorage.getItem("black win")===null){  //no key yet
+    localStorage.setItem("black win", 0);
+  }
+  else{
+    totalBlackWin = int(localStorage.getItem("black win"));
+  }
 }
 
 function draw() {
+  //draws stuff in a particular order to create chess
   row = getCurrentY();
   col = getCurrentX();
   background(255);
@@ -74,7 +92,6 @@ function draw() {
   kingPos();
   drawCircles();
   selectionCircle();
-  keyPressed();
   stalemateByInsufficient();
   if (winChecker()) {
     if(soundCount === 0){
@@ -90,7 +107,14 @@ function draw() {
       if (textChange < 90) {
         textChange++;
       }
+      if(thingy === 1){
+        thingy++;
+        totalBlackWin++;
+      }
+      localStorage.setItem("black win", totalBlackWin);
       text("Black Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
+      textSize(10);
+      text("number of times black won: "+localStorage.getItem("black win"),60,60);
     }
     else if (turn === -1) {
       fill(235);
@@ -98,7 +122,14 @@ function draw() {
       if (textChange < 90) {
         textChange++;
       }
+      if(thingy === 1){
+        thingy++;
+        totalWhiteWin++;
+      }
+      localStorage.setItem("white win", totalWhiteWin);
       text("White Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
+      textSize(10);
+      text("number of times white won: "+localStorage.getItem("white win"),60,60);
     }
   }
   if (stalemate === true) {
@@ -114,6 +145,7 @@ function draw() {
   }
 }
 function renderPieces() {
+  //draws the pieces on the board using the 2d array
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       if (boardData[row][col] !== 0) {
@@ -123,6 +155,7 @@ function renderPieces() {
   }
 }
 function chessBoard() {
+  //draws the chessboard
   stroke(0);
   let c = "green";
   if (turn === 1) {
@@ -158,7 +191,8 @@ function getCurrentY() { //determine current row mouse is in, and return
   let constrainMouseY = constrain(mouseY, 0, height - 1);
   return floor(constrainMouseY / 60);
 }
-function selectionCircle() {
+function selectionCircle(){
+  //changes the colour of the red circle depending on if you have a piece selected
   if (clickCount === 1) {
     fill("red");
   }
@@ -170,6 +204,8 @@ function selectionCircle() {
 let selectedRow = 6;
 let selectedCol = 0;
 function pawnPromotionDrawing(pc) {
+  //draws the image for the pawn promotion
+  //lets you select which piece you want
   fill(0);
   stroke("red");
   if (pc === wP) {
@@ -188,12 +224,23 @@ function pawnPromotionDrawing(pc) {
     image(bB, 240, 240, 60, 60);
   }
 }
+function keyPressed(){
+  if(key === "r"){
+    totalWhiteWin = 0;
+    totalBlackWin = 0;
+    localStorage.setItem("black win",0);
+    localStorage.setItem("white win",0);
+  }
+}
 function mousePressed() {
+  //moves pieces by changning board data
+  //checks for play again
   if (winChecker() || stalemate) {
     if (row === 2) {
       if (col === 3 || col === 4) {
         turn = 1;
         soundCount = 0;
+        thingy = 1;
         boardData = [
           [bR, bN, bB, bQ, bK, bB, bN, bR],
           [bP, bP, bP, bP, bP, bP, bP, bP],
@@ -380,9 +427,12 @@ function mousePressed() {
   }
 }
 function boardFlip() {
+  //flips the board
   boardData.reverse();
 }
 function drawCircles() {
+  //draws the little gray circles onto the board
+  //makes use of other funcitons
   for (let x = 0; x < 8; x++) {
     for (let y = 0; y < 8; y++) {
       if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
@@ -408,6 +458,9 @@ function drawCircles() {
   }
 }
 function rules(piece, row, col, selectedRow, selectedCol, func) {
+  //largest most complicated function
+  //esentially checks if any move is valid under normal circumstances
+  //lots of other functions use this one
   if (turn === 1) {
     if (boardData[row][col] === 0 || boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
       if (piece === wP) {
@@ -1107,16 +1160,9 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
     }
   }
 }
-function keyPressed() {
-  sound.setVolume();
-  if (key === "a") {
-    sound.setVolume += soundamount;
-  }
-  if (key === "s") {
-    sound.setVolume -= soundamount;
-  }
-}
 function kingDetection(turn, selectedRow, selectedCol, row, col) {
+  //checks if the spot the king wants to go is in danger
+  //makes it so he cant go there
   if (turn === 1) {
     if (boardData[selectedRow][selectedCol] === wK) {
       for (let x = 0; x < 8; x++) {
@@ -1188,6 +1234,7 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
   return true;
 }
 function kingPos() {
+  //gets the current king position in terms of row and col
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
@@ -1210,6 +1257,10 @@ function kingPos() {
   }
 }
 function pinDetection(turn, selectedRow, selectedCol, row, col, func) {
+  //makes it so pieces cant move if the king will be
+  //put in check because of it
+  //essentially checks if the king is in check
+  //but only for this case
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
@@ -1273,6 +1324,12 @@ function pinDetection(turn, selectedRow, selectedCol, row, col, func) {
   return true;
 }
 function winChecker() {
+  //basically trys to find any legal move
+  //if it cant then it checks if the king is in check
+  //if there are no legal moves and the king is in check
+  //then its a win for whoevers turn it is
+  //if the king is not in check
+  //then stalemate
   for (let selectedCol2 = 0; selectedCol2 < 8; selectedCol2++) {
     for (let selectedRow2 = 0; selectedRow2 < 8; selectedRow2++) {
       for (let col2 = 0; col2 < 8; col2++) {
