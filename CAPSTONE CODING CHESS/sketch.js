@@ -32,10 +32,13 @@ let squareValue3;
 let wc = 0;
 let bc = 0;
 let victorySound;
+let errorSound;
 let soundCount = 0;
 let totalWhiteWin = 0;
 let totalBlackWin = 0;
 let thingy = 1;
+let colorPos = 0;
+let colorArray;
 function preload() {
   //loads a bunch a stuff
   bB = loadImage("assets/black bishop.png");
@@ -52,6 +55,7 @@ function preload() {
   wR = loadImage("assets/white rook.png");
   sound = loadSound("assets/move-self.mp3");
   victorySound = loadSound("assets/victory noise.mp3");
+  errorSound = loadSound("assets/mixkit-wrong-electricity-buzz-955.wav");
   boardData = [//sets board up with images as data so it's easy to render
     [bR, bN, bB, bQ, bK, bB, bN, bR],
     [bP, bP, bP, bP, bP, bP, bP, bP],
@@ -65,7 +69,7 @@ function preload() {
   board2 = boardData;
 }
 function setup() {
-  createCanvas(60 * 9, 60 * 9);
+  createCanvas(60 * 8, 60 * 8);
   document.addEventListener("contextmenu", event => event.preventDefault());
   if(localStorage.getItem("white win")===null){  //no key yet
     localStorage.setItem("white win", 0);
@@ -79,6 +83,18 @@ function setup() {
   else{
     totalBlackWin = int(localStorage.getItem("black win"));
   }
+  if(localStorage.getItem("colorPos")===null){  //no key yet
+    localStorage.setItem("colorPos", 0);
+  }
+  else{
+    colorPos = int(localStorage.getItem("colorPos"));
+  }
+  colorArray = [
+    color(238, 238, 210),color(118, 150, 86),
+    color(129, 138, 156),color(50, 55, 69),
+    color(237, 237, 235),color(47, 97, 69),
+    color(237, 237, 235),color(175, 235, 207),
+    color(265, 210, 225),color(245, 147, 171)];
 }
 
 function draw() {
@@ -113,7 +129,7 @@ function draw() {
       }
       localStorage.setItem("black win", totalBlackWin);
       text("Black Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
-      textSize(10);
+      textSize(15);
       text("number of times black won: "+localStorage.getItem("black win"),60,60);
     }
     else if (turn === -1) {
@@ -128,7 +144,7 @@ function draw() {
       }
       localStorage.setItem("white win", totalWhiteWin);
       text("White Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
-      textSize(10);
+      textSize(15);
       text("number of times white won: "+localStorage.getItem("white win"),60,60);
     }
   }
@@ -157,27 +173,27 @@ function renderPieces() {
 function chessBoard() {
   //draws the chessboard
   stroke(0);
-  let c = "green";
+  let c = colorArray[colorPos+1];
   if (turn === 1) {
-    c = "green";
+    c = colorArray[colorPos+1];
   }
   else {
-    c = 255;
+    c = colorArray[colorPos];
   }
   for (let x = 0; x < squareSize * 8; x += squareSize) {//size w
-    if (c === 255) {
-      c = "green";
+    if (c === colorArray[colorPos]) {
+      c = colorArray[colorPos+1];
     }
     else {
-      c = 255;
+      c = colorArray[colorPos];
     }
     for (let y = 0; y < squareSize * 8; y += squareSize) {//size h
       fill(c);
-      if (c === 255) {
-        c = "green";
+      if (c === colorArray[colorPos]) {
+        c = colorArray[colorPos+1];
       }
       else {
-        c = 255;
+        c = colorArray[colorPos];
       }
       rect(x, y, squareSize);
     }
@@ -230,6 +246,13 @@ function keyPressed(){
     totalBlackWin = 0;
     localStorage.setItem("black win",0);
     localStorage.setItem("white win",0);
+  }
+  if(key === "c"){
+    colorPos += 2;
+    if(colorPos >= colorArray.length-1){
+      colorPos = 0;
+    }
+    localStorage.setItem("colorPos",colorPos);
   }
 }
 function mousePressed() {
@@ -333,6 +356,12 @@ function mousePressed() {
             }
           }
         }
+        else{
+          errorSound.play();
+        }
+      }
+      else{
+        errorSound.play();
       }
     }
     if (clickCount === 2) {
