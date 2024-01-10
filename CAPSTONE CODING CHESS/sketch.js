@@ -71,30 +71,32 @@ function preload() {
 function setup() {
   createCanvas(60 * 8, 60 * 8);
   document.addEventListener("contextmenu", event => event.preventDefault());
-  if(localStorage.getItem("white win")===null){  //no key yet
+  if (localStorage.getItem("white win") === null) {  //no key yet
     localStorage.setItem("white win", 0);
   }
-  else{
+  else {
     totalWhiteWin = int(localStorage.getItem("white win"));
   }
-  if(localStorage.getItem("black win")===null){  //no key yet
+  if (localStorage.getItem("black win") === null) {  //no key yet
     localStorage.setItem("black win", 0);
   }
-  else{
+  else {
     totalBlackWin = int(localStorage.getItem("black win"));
   }
-  if(localStorage.getItem("colorPos")===null){  //no key yet
+  if (localStorage.getItem("colorPos") === null) {  //no key yet
     localStorage.setItem("colorPos", 0);
   }
-  else{
+  else {
     colorPos = int(localStorage.getItem("colorPos"));
   }
   colorArray = [
-    color(238, 238, 210),color(118, 150, 86),
-    color(129, 138, 156),color(50, 55, 69),
-    color(237, 237, 235),color(47, 97, 69),
-    color(237, 237, 235),color(175, 235, 207),
-    color(265, 210, 225),color(245, 147, 171)];
+    color(238, 238, 210), color(118, 150, 86),
+    color(129, 138, 156), color(50, 55, 69),
+    color(237, 237, 235), color(47, 97, 69),
+    "lightyellow","blue",
+    color(265, 210, 225), color(245, 147, 171),
+    "lightblue", "purple",
+    "lightgreen", "maroon"];
 }
 
 function draw() {
@@ -110,7 +112,7 @@ function draw() {
   selectionCircle();
   stalemateByInsufficient();
   if (winChecker()) {
-    if(soundCount === 0){
+    if (soundCount === 0) {
       victorySound.play();
     }
     soundCount++;
@@ -123,14 +125,14 @@ function draw() {
       if (textChange < 90) {
         textChange++;
       }
-      if(thingy === 1){
+      if (thingy === 1) {
         thingy++;
         totalBlackWin++;
       }
       localStorage.setItem("black win", totalBlackWin);
       text("Black Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
       textSize(15);
-      text("number of times black won: "+localStorage.getItem("black win"),60,60);
+      text("number of times black won: " + localStorage.getItem("black win"), 60, 60);
     }
     else if (turn === -1) {
       fill(235);
@@ -138,14 +140,14 @@ function draw() {
       if (textChange < 90) {
         textChange++;
       }
-      if(thingy === 1){
+      if (thingy === 1) {
         thingy++;
         totalWhiteWin++;
       }
       localStorage.setItem("white win", totalWhiteWin);
       text("White Wins!", width / 2 - textChange * 2.6, height / 2 + textChange / 2.5);
       textSize(15);
-      text("number of times white won: "+localStorage.getItem("white win"),60,60);
+      text("number of times white won: " + localStorage.getItem("white win"), 60, 60);
     }
   }
   if (stalemate === true) {
@@ -173,16 +175,16 @@ function renderPieces() {
 function chessBoard() {
   //draws the chessboard
   stroke(0);
-  let c = colorArray[colorPos+1];
+  let c = colorArray[colorPos + 1];
   if (turn === 1) {
-    c = colorArray[colorPos+1];
+    c = colorArray[colorPos + 1];
   }
   else {
     c = colorArray[colorPos];
   }
   for (let x = 0; x < squareSize * 8; x += squareSize) {//size w
     if (c === colorArray[colorPos]) {
-      c = colorArray[colorPos+1];
+      c = colorArray[colorPos + 1];
     }
     else {
       c = colorArray[colorPos];
@@ -190,7 +192,7 @@ function chessBoard() {
     for (let y = 0; y < squareSize * 8; y += squareSize) {//size h
       fill(c);
       if (c === colorArray[colorPos]) {
-        c = colorArray[colorPos+1];
+        c = colorArray[colorPos + 1];
       }
       else {
         c = colorArray[colorPos];
@@ -207,7 +209,7 @@ function getCurrentY() { //determine current row mouse is in, and return
   let constrainMouseY = constrain(mouseY, 0, height - 1);
   return floor(constrainMouseY / 60);
 }
-function selectionCircle(){
+function selectionCircle() {
   //changes the colour of the red circle depending on if you have a piece selected
   if (clickCount === 1) {
     fill("red");
@@ -240,19 +242,19 @@ function pawnPromotionDrawing(pc) {
     image(bB, 240, 240, 60, 60);
   }
 }
-function keyPressed(){
-  if(key === "r"){
+function keyPressed() {
+  if (key === "r") {
     totalWhiteWin = 0;
     totalBlackWin = 0;
-    localStorage.setItem("black win",0);
-    localStorage.setItem("white win",0);
+    localStorage.setItem("black win", 0);
+    localStorage.setItem("white win", 0);
   }
-  if(key === "c"){
+  if (key === "c") {
     colorPos += 2;
-    if(colorPos >= colorArray.length-1){
+    if (colorPos >= colorArray.length - 1) {
       colorPos = 0;
     }
-    localStorage.setItem("colorPos",colorPos);
+    localStorage.setItem("colorPos", colorPos);
   }
 }
 function mousePressed() {
@@ -289,7 +291,7 @@ function mousePressed() {
   else if (clickCount === 2) {
     let kingMoved = false;
     if (row !== selectedRow || col !== selectedCol) {//double click line
-      if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Bad")) {
+      if (rules(boardData[selectedRow][selectedCol], row, col, selectedRow, selectedCol, "Good")) {
         if (kingDetection(turn, selectedRow, selectedCol, row, col)) {
           squareValue = boardData[row][col];
           boardData[row][col] = boardData[selectedRow][selectedCol];
@@ -350,17 +352,18 @@ function mousePressed() {
           }
           else {
             if (kingMoved === false) {
+              errorSound.play();
               pinDetector = false;
               boardData[selectedRow][selectedCol] = boardData[row][col];
               boardData[row][col] = squareValue;
             }
           }
         }
-        else{
+        else {
           errorSound.play();
         }
       }
-      else{
+      else {
         errorSound.play();
       }
     }
@@ -462,25 +465,27 @@ function boardFlip() {
 function drawCircles() {
   //draws the little gray circles onto the board
   //makes use of other funcitons
-  for (let x = 0; x < 8; x++) {
-    for (let y = 0; y < 8; y++) {
-      if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
-        if (kingDetection(turn, selectedRow, selectedCol, y, x)) {
-          if (boardData[selectedRow][selectedCol] === wK || boardData[selectedRow][selectedCol] === bK) {
-            stroke(150);
-            fill(150);
-            circle(x * 60 + 30, y * 60 + 30, 13);
+  if (clickCount === 2) {
+    for (let x = 0; x < 8; x++) {
+      for (let y = 0; y < 8; y++) {
+        if (rules(boardData[selectedRow][selectedCol], y, x, selectedRow, selectedCol, "Bad")) {
+          if (kingDetection(turn, selectedRow, selectedCol, y, x)) {
+            if (boardData[selectedRow][selectedCol] === wK || boardData[selectedRow][selectedCol] === bK) {
+              stroke(150);
+              fill(150);
+              circle(x * 60 + 30, y * 60 + 30, 13);
+            }
+            squareValue3 = boardData[y][x];
+            boardData[y][x] = boardData[selectedRow][selectedCol];
+            boardData[selectedRow][selectedCol] = 0;
+            if (pinDetection(turn, selectedRow, selectedCol, y, x)) {
+              stroke(150);
+              fill(150);
+              circle(x * 60 + 30, y * 60 + 30, 13);
+            }
+            boardData[selectedRow][selectedCol] = boardData[y][x];
+            boardData[y][x] = squareValue3;
           }
-          squareValue3 = boardData[y][x];
-          boardData[y][x] = boardData[selectedRow][selectedCol];
-          boardData[selectedRow][selectedCol] = 0;
-          if (pinDetection(turn, selectedRow, selectedCol, y, x)) {
-            stroke(150);
-            fill(150);
-            circle(x * 60 + 30, y * 60 + 30, 13);
-          }
-          boardData[selectedRow][selectedCol] = boardData[y][x];
-          boardData[y][x] = squareValue3;
         }
       }
     }
@@ -500,7 +505,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                 if (boardData[row + 1][col] === 0) {
                   if (func === "Good") {
                     passantCol = col;
-                    passantCount = 0;
+                    passantCount = 1;
                   }
                   return true;
                 }
@@ -849,7 +854,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                 if (boardData[row + 1][col] === 0) {
                   if (func === "Good") {
                     passantCol = col;
-                    passantCount = 0;
+                    passantCount = 1;
                   }
                 }
                 return true;
