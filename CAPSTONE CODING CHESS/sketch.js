@@ -33,6 +33,9 @@ let wc = 0;
 let bc = 0;
 let victorySound;
 let errorSound;
+let whoosh;
+let bell;
+let music;
 let soundCount = 0;
 let totalWhiteWin = 0;
 let totalBlackWin = 0;
@@ -56,6 +59,9 @@ function preload() {
   sound = loadSound("assets/move-self.mp3");
   victorySound = loadSound("assets/victory noise.mp3");
   errorSound = loadSound("assets/mixkit-wrong-electricity-buzz-955.wav");
+  whoosh = loadSound("assets/whoosh-6316.mp3");
+  bell = createAudio("assets/boxing-bell.mp3");
+  music = createAudio("assets/random-acoustic-electronic-guitar-136427.mp3")
   boardData = [//sets board up with images as data so it's easy to render
     [bR, bN, bB, bQ, bK, bB, bN, bR],
     [bP, bP, bP, bP, bP, bP, bP, bP],
@@ -69,6 +75,9 @@ function preload() {
   board2 = boardData;
 }
 function setup() {
+  music.loop();
+  bell.volume(0.4);
+  bell.play();
   createCanvas(60 * 8, 60 * 8);
   document.addEventListener("contextmenu", event => event.preventDefault());
   if (localStorage.getItem("white win") === null) {  //no key yet
@@ -242,6 +251,7 @@ function pawnPromotionDrawing(pc) {
     image(bB, 240, 240, 60, 60);
   }
 }
+let musicVolume = 0.5;
 function keyPressed() {
   if (key === "r") {
     totalWhiteWin = 0;
@@ -250,6 +260,7 @@ function keyPressed() {
     localStorage.setItem("white win", 0);
   }
   if (key === "c") {
+    whoosh.play();
     colorPos += 2;
     if (colorPos >= colorArray.length - 1) {
       colorPos = 0;
@@ -263,6 +274,7 @@ function mousePressed() {
   if (winChecker() || stalemate) {
     if (row === 2) {
       if (col === 3 || col === 4) {
+        bell.play();
         turn = 1;
         soundCount = 0;
         thingy = 1;
