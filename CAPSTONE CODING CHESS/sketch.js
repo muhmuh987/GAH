@@ -58,7 +58,7 @@ function preload() {
   wR = loadImage("assets/white rook.png");
   sound = loadSound("assets/move-self.mp3");
   victorySound = loadSound("assets/victory noise.mp3");
-  errorSound = loadSound("assets/mixkit-wrong-electricity-buzz-955.wav");
+  errorSound = createAudio("assets/mixkit-wrong-electricity-buzz-955.wav");
   whoosh = loadSound("assets/whoosh-6316.mp3");
   bell = createAudio("assets/boxing-bell.mp3");
   music = createAudio("assets/random-acoustic-electronic-guitar-136427.mp3")
@@ -75,8 +75,10 @@ function preload() {
   board2 = boardData;
 }
 function setup() {
+  errorSound.volume(0.5);
+  music.volume(0);
   music.loop();
-  bell.volume(0.4);
+  bell.volume(0.2);
   bell.play();
   createCanvas(60 * 8, 60 * 8);
   document.addEventListener("contextmenu", event => event.preventDefault());
@@ -251,21 +253,36 @@ function pawnPromotionDrawing(pc) {
     image(bB, 240, 240, 60, 60);
   }
 }
-let musicVolume = 0.5;
+let musicVolume = 0.1;
 function keyPressed() {
+  //resets the numbers that keep track of the amount
+  //of wins
   if (key === "r") {
+    whoosh.play();
     totalWhiteWin = 0;
     totalBlackWin = 0;
     localStorage.setItem("black win", 0);
     localStorage.setItem("white win", 0);
   }
   if (key === "c") {
+    //swaps colours
     whoosh.play();
     colorPos += 2;
     if (colorPos >= colorArray.length - 1) {
       colorPos = 0;
     }
     localStorage.setItem("colorPos", colorPos);
+  }
+  if (key === "m"){
+    //toggles music
+    if (musicVolume > 0){
+      musicVolume = 0;
+      music.volume(0);
+    }
+    else{
+      musicVolume = 0.1;
+      music.volume(0.1);
+    }
   }
 }
 function mousePressed() {
@@ -511,8 +528,8 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
     if (boardData[row][col] === 0 || boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
       if (piece === wP) {
         if (selectedCol === col) {
-          if (boardData[row][col] === 0) {
-            if (selectedRow === 6) {
+          if (boardData[row][col] === 0) {//moving forward
+            if (selectedRow === 6) {//if on starting square
               if (selectedRow === row + 2) {
                 if (boardData[row + 1][col] === 0) {
                   if (func === "Good") {
@@ -522,7 +539,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                   return true;
                 }
               }
-              else if (selectedRow === row + 1) {
+              else if (selectedRow === row + 1) {//if not
                 return true;
               }
             }
@@ -533,7 +550,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
             }
           }
         }
-        else if (col === passantCol && row === 2) {
+        else if (col === passantCol && row === 2) {//en passant case
           if (selectedRow === 3) {
             if (selectedCol === passantCol + 1 || selectedCol === passantCol - 1) {
               if (passantCount === 1) {
@@ -545,8 +562,15 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
               }
             }
           }
+          if (col + 1 === selectedCol || col - 1 === selectedCol) {
+            if (row === selectedRow - 1) {
+              if (boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
+                return true;
+              }
+            }
+          }
         }
-        else if (col + 1 === selectedCol || col - 1 === selectedCol) {
+        else if (col + 1 === selectedCol || col - 1 === selectedCol) {//taking on diagnols
           if (row === selectedRow - 1) {
             if (boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
               return true;
@@ -554,7 +578,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           }
         }
       }
-      else if (piece === wN) {
+      else if (piece === wN) {//simple code, Knights can jump pieces
         if (boardData[row][col] === 0 || boardData[row][col] === bP || boardData[row][col] === bR || boardData[row][col] === bN || boardData[row][col] === bB || boardData[row][col] === bQ || boardData[row][col] === bK) {
           if (selectedCol === col - 1 || selectedCol === col + 1) {
             if (selectedRow === row + 2 || selectedRow === row - 2) {
@@ -569,11 +593,13 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
         }
       }
       else if (piece === wR) {
-        if (selectedCol === col) {
+        if (selectedCol === col) {//same column
+          //moving right beside return true
           if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
             return true;
           }
           if (row < selectedRow) {
+            //else do a check on pieces to see if empty
             for (let i = selectedRow - 1; boardData[i][col] === 0; i--) {
               if (row > i - 2) {
                 return true;
@@ -581,6 +607,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
             }
           }
           else if (row > selectedRow) {
+            //check both directions
             for (let i = selectedRow + 1; boardData[i][col] === 0; i++) {
               if (row < i + 2) {
                 return true;
@@ -589,10 +616,12 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           }
         }
         else if (selectedRow === row) {
+          //now if in same row instead of col
           if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
             return true;
           }
           if (col < selectedCol) {
+            //check up
             for (let i = selectedCol - 1; boardData[row][i] === 0; i--) {
               if (col > i - 2) {
                 return true;
@@ -600,6 +629,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
             }
           }
           else if (col > selectedCol) {
+            //check down
             for (let i = selectedCol + 1; boardData[row][i] === 0; i++) {
               if (col < i + 2) {
                 return true;
@@ -609,9 +639,10 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
         }
       }
       else if (piece === wK) {
+        //simple code to move 1 square
         if (row + 1 === selectedRow || row - 1 === selectedRow) {
           if (col + 1 === selectedCol || col === selectedCol || col - 1 === selectedCol) {
-            if (func === "Good") {
+            if (func === "Good") {//used for castling
               haswKMoved = true;
             }
             return true;
@@ -625,6 +656,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
             return true;
           }
         }
+        //castling code (king side)
         else if (row === 7 && col === 6) {
           if (boardData[7][5] === 0) {
             if (boardData[7][7] === wR) {
@@ -633,11 +665,14 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                   boardData[7][5] = wK;
                   boardData[7][4] = 0;
                   kingPos();
-                  if (pinDetection(turn)) {
+                  if (pinDetection(turn)) {//used to check if enemy pieces are in control of the squares
                     boardData[7][5] = 0;
                     boardData[7][4] = wK;
+                    //func checks if the function should 
+                    //actually do things or if its a bad
+                    //function running rules
                     if (func === "Good") {
-                      boardData[7][7] = 0;
+                      boardData[7][7] = 0;//switches pieces
                       boardData[7][5] = wR;
                       haswKMoved = true;
                       boardData[7][5] = wR;
@@ -652,6 +687,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
             }
           }
         }
+        //caslting code (queen side)
         else if (row === 7 && col === 2) {
           if (boardData[7][0] === wR && boardData[7][1] === 0 && boardData[7][3] === 0 && haswKMoved === false) {
             if (pinDetection(turn)) {
@@ -677,6 +713,9 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
         }
       }
       else if (piece === wB) {
+        //diagnols are hard
+        //if you can figure out the column
+        //you can figure out the row
         if (row < selectedRow) {
           let colPos = selectedCol;
           let colNeg = selectedCol;
@@ -684,23 +723,28 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           let minCol = -100;
           let maxNum = 0;
           let minNum = 0;
+          //loop going up
+          //r represents current row
           for (let r = selectedRow - 1; r >= 0; r--) {
+            //shows which columns work with current r value
             colPos++;
             colNeg--;
             if (boardData[r][colPos] !== 0) {
               if (maxNum === 0) {
                 maxCol = colPos;
-                maxNum++;
+                maxNum++;//check for pieces on right
               }
             }
             if (boardData[r][colNeg] !== 0) {
               if (minNum === 0) {
                 minCol = colNeg;
-                minNum--;
+                minNum--;//check for pieces on left
               }
             }
             if (row === r && col === colPos) {
-              if (col <= maxCol) {
+              if (col <= maxCol) {//if the row and col
+                // are allowed and the col doesn't go
+                //over any pieces
                 return true;
               }
             }
@@ -712,6 +756,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
           }
         }
         else if (row > selectedRow) {
+          //same thing but for the downward values
           let colPos = selectedCol;
           let colNeg = selectedCol;
           let maxCol = 100;
@@ -747,6 +792,7 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
         }
       }
       else if (piece === wQ) {
+        //copy paste of bishop and rook code
         if (selectedCol === col) {
           if (row + 1 === selectedRow || row - 1 === selectedRow || col + 1 === selectedCol || col - 1 === selectedCol) {
             return true;
@@ -857,6 +903,9 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
     }
   }
   else if (turn === -1) {
+    //same as white code now for black.
+    //mostly copy pasted
+    //makes it so black pieces cant take black pieces
     if (boardData[row][col] === 0 || boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
       if (piece === bP) {
         if (selectedCol === col) {
@@ -890,6 +939,13 @@ function rules(piece, row, col, selectedRow, selectedCol, func) {
                   boardData[3][passantCol] = 0;
                   passantCol = 69;
                 }
+                return true;
+              }
+            }
+          }
+          if (col + 1 === selectedCol || col - 1 === selectedCol) {
+            if (row === selectedRow - 1) {
+              if (boardData[row][col] === wP || boardData[row][col] === wR || boardData[row][col] === wN || boardData[row][col] === wB || boardData[row][col] === wQ || boardData[row][col] === wK) {
                 return true;
               }
             }
@@ -1213,28 +1269,33 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
     if (boardData[selectedRow][selectedCol] === wK) {
       for (let x = 0; x < 8; x++) {
         for (let y = 0; y < 8; y++) {
+          //checks every possible move on the board
           boardData[selectedRow][selectedCol] = 0;
+          //row and col become the new "selected" row
           if (rules(wB, y, x, row, col, "Bad")) {
+            //checks if white bishop could take king
+            //on that square
             if (boardData[y][x] === bB || boardData[y][x] === bQ) {
+              //checks if a bishop or queen is actually there
               boardData[selectedRow][selectedCol] = wK;
               return false;
             }
             boardData[selectedRow][selectedCol] = wK;
           }
           boardData[selectedRow][selectedCol] = 0;
-          if (rules(wR, y, x, row, col, "Bad")) {
+          if (rules(wR, y, x, row, col, "Bad")) {// same for rook
             if (boardData[y][x] === bR || boardData[y][x] === bQ) {
               boardData[selectedRow][selectedCol] = wK;
               return false;
             }
           }
-          boardData[selectedRow][selectedCol] = wK;
+          boardData[selectedRow][selectedCol] = wK;//knight
           if (rules(wN, y, x, row, col, "Bad")) {
             if (boardData[y][x] === bN) {
               return false;
             }
           }
-          if (rules(wP, y, x, row, col, "Bad")) {
+          if (rules(wP, y, x, row, col, "Bad")) {//pawn
             if (boardData[y][x] === bP) {
               return false;
             }
@@ -1243,7 +1304,7 @@ function kingDetection(turn, selectedRow, selectedCol, row, col) {
       }
     }
   }
-  if (turn === -1) {
+  if (turn === -1) {//copy pasted for black
     if (boardData[selectedRow][selectedCol] === bK) {
       for (let x = 0; x < 8; x++) {
         for (let y = 0; y < 8; y++) {
@@ -1306,7 +1367,9 @@ function pinDetection(turn, selectedRow, selectedCol, row, col, func) {
   //makes it so pieces cant move if the king will be
   //put in check because of it
   //essentially checks if the king is in check
-  //but only for this case
+  //bit confusing to implement this funciton into code
+  //as you have to move the piece then check if it works
+  //then move it back
   if (turn === 1) {
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
@@ -1338,6 +1401,8 @@ function pinDetection(turn, selectedRow, selectedCol, row, col, func) {
     }
   }
   if (turn === -1) {
+    //same for black
+    //very similar to king detection
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
         if (boardData[y][x] === bK) {
@@ -1379,9 +1444,12 @@ function winChecker() {
   for (let selectedCol2 = 0; selectedCol2 < 8; selectedCol2++) {
     for (let selectedRow2 = 0; selectedRow2 < 8; selectedRow2++) {
       for (let col2 = 0; col2 < 8; col2++) {
-        for (let row2 = 0; row2 < 8; row2++) {
+        for (let row2 = 0; row2 < 8; row2++) {//checks every possible move ever possible
           let kingMoved = false;
           if (row2 !== selectedRow2 || col2 !== selectedCol2) {//double click line
+            //very similar to mouse pressed function.
+            //uses other functions to check if move is legal
+            //if so then you have not won as there is a legal move
             if (rules(boardData[selectedRow2][selectedCol2], row2, col2, selectedRow2, selectedCol2, "Bad")) {
               if (kingDetection(turn, selectedRow2, selectedCol2, row2, col2)) {
                 if (boardData[selectedRow2][selectedCol2] === wK || boardData[selectedRow2][selectedCol2] === bK) {
@@ -1407,6 +1475,10 @@ function winChecker() {
     }
   }
   if (turn === -1) {
+    //stalemate checker did black first this time
+    //ran into a very confusing situation where i had to make black kings white
+    //checks if the king is in check
+    //couldnt use pin checker because of this issue
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
         if (boardData[y][x] === bK) {
@@ -1451,6 +1523,7 @@ function winChecker() {
     return false;
   }
   if (turn === 1) {
+    //copy pasted for white
     for (let x = 0; x < 8; x++) {
       for (let y = 0; y < 8; y++) {
         if (boardData[y][x] === wK) {
@@ -1497,6 +1570,8 @@ function winChecker() {
   return true;
 }
 function stalemateByInsufficient() {
+  //checks if there is enough pieces on the board to checkmate a king
+  //very simple
   wc = 0;
   bc = 0;
   for (let x = 0; x < 8; x++) {
