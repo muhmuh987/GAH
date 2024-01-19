@@ -2,7 +2,9 @@
 // Elias and Rupam
 // dec 1st 2023
 // 2 Player Chess Game
-
+//press c to change board color
+//press m to unmute
+//press r to reset the # of times players have won
 //Global Variables
 let squareSize = 60;
 let bB, bK, bN, bP, bQ, bR, wB, wK, wN, wP, wQ, wR;
