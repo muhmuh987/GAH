@@ -63,7 +63,7 @@ function preload() {
   errorSound = createAudio("assets/mixkit-wrong-electricity-buzz-955.wav");
   whoosh = loadSound("assets/whoosh-6316.mp3");
   bell = createAudio("assets/boxing-bell.mp3");
-  music = createAudio("assets/random-acoustic-electronic-guitar-136427.mp3")
+  music = createAudio("assets/random-acoustic-electronic-guitar-136427.mp3");
   boardData = [//sets board up with images as data so it's easy to render
     [bR, bN, bB, bQ, bK, bB, bN, bR],
     [bP, bP, bP, bP, bP, bP, bP, bP],
@@ -255,7 +255,7 @@ function pawnPromotionDrawing(pc) {
     image(bB, 240, 240, 60, 60);
   }
 }
-let musicVolume = 0.1;
+let musicVolume = 0;
 function keyPressed() {
   //resets the numbers that keep track of the amount
   //of wins
